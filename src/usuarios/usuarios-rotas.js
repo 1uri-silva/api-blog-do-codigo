@@ -3,12 +3,19 @@ const middlewaresAutenticacao = require('./middlewares-autenticacao');
 
 module.exports = app => {
   app
-    .route('/usuario/login')
-    .post(middlewaresAutenticacao.local, usuariosControlador.login);
+		.route("/usuario/atualiza_token")
+		.post(middlewaresAutenticacao.refresh, usuariosControlador.login);
 
-  app
-    .route('/usuario/logout')
-    .get(middlewaresAutenticacao.bearer, usuariosControlador.logout);
+	app
+		.route("/usuario/login")
+		.post(middlewaresAutenticacao.local, usuariosControlador.login);
+
+	app
+		.route("/usuario/logout")
+		.post(
+			[middlewaresAutenticacao.refresh, middlewaresAutenticacao.bearer],
+			usuariosControlador.logout
+		);
 
   app
     .route('/usuario')
