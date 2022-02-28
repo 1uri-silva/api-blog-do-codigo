@@ -5,22 +5,28 @@ module.exports = {
   adiciona: usuario => {
     return new Promise((resolve, reject) => {
       db.run(
-        `
+				`
           INSERT INTO usuarios (
             nome,
             email,
-            senhaHash
-          ) VALUES (?, ?, ?)
+            senhaHash,
+            emailVerifcado
+          ) VALUES (?, ?, ?, ?)
         `,
-        [usuario.nome, usuario.email, usuario.senhaHash],
-        erro => {
-          if (erro) {
-            reject(new InternalServerError('Erro ao adicionar o usuário!'));
-          }
+				[
+					usuario.nome,
+					usuario.email,
+					usuario.senhaHash,
+					usuario.emailVerifcado,
+				],
+				(erro) => {
+					if (erro) {
+						reject(new InternalServerError("Erro ao adicionar o usuário!"));
+					}
 
-          return resolve();
-        }
-      );
+					return resolve();
+				}
+			);
     });
   },
 
@@ -96,5 +102,13 @@ module.exports = {
         }
       );
     });
+  },
+
+  async atualizaEmailVerificado (usuario, emailVerifcado) {
+    try {
+      await db.run(`UPDATE usuarios SET emailVerifcado = ? WHERE id = ?`, [emailVerifcado, usuario.id])
+    } catch (error) {
+      throw new InternalServerError('Erro ao modificar a verificação de e-mail')
+    }
   }
 };

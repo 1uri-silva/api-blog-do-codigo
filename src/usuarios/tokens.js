@@ -17,7 +17,9 @@ function criaTokenJWT(id, [tempoQuantidade, tempoUnidade]) {
 	return token;
 }
 
-async function verificaTokenNaBlacklist(token, blacklistToken, nome) {
+async function verificaTokenNaBlacklist(token, nome, blacklistToken) {
+	if (!blacklistToken) return;
+
 	const tokenNaBlacklist = await blacklistToken.contemToken(token);
 	if (tokenNaBlacklist) {
 		throw new jwt.JsonWebTokenError(`${nome} inválido por logout!`);
@@ -28,8 +30,8 @@ async function invalidaToken(token, blockList) {
 	return blockList.adiciona(token);
 }
 
-async function verificaTokenJWT(token, blacklistToken, nome) {
-	await verificaTokenNaBlacklist(token, blacklistToken, nome);
+async function verificaTokenJWT(token, nome, blacklistToken) {
+	await verificaTokenNaBlacklist(token, nome, blacklistToken);
 	const { id } = jwt.verify(token, process.env.CHAVE_JWT);
 	return id;
 }
@@ -75,7 +77,7 @@ module.exports = {
 			return criaTokenJWT(id, this.expiracao);
 		},
 		verifica(token) {
-			return verificaTokenJWT(token, this.blacklistToken, this.nome);
+			return verificaTokenJWT(token, this.nome, this.blacklistToken);
 		},
 		invalida(token) {
 			return invalidaToken(token, this.blacklistToken);
@@ -94,6 +96,17 @@ module.exports = {
 		},
 		invalida(token) {
 			return invalidaTokenOpaco(token, this.allowList);
+		},
+	},
+
+	verificacaoEmail: {
+		nome: "Verificação e-mail",
+		expiracao: [1, "h"],
+		cria(id) {
+			return criaTokenJWT(id, this.expiracao);
+		},
+		verifica(token) {
+			return verificaTokenJWT(token, this.nome);
 		},
 	},
 };
